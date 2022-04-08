@@ -35,21 +35,21 @@ NoLoginWhitelist = [
 def Worker():
 	return session.get("worker")
 
-@app.before_request
-def guide ():
-	if request.path == "/":  # If at root, redirect
-		return redirect(url_for("Home"))
-	if not session.get("id"):  # If not logged in,
-		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
-			args = request.args
-			arguments = ""
-			for key, val in zip(args.keys(), args.values()):
-				arguments += f"{key}={val}&"
-			if arguments != "":
-				arguments = "?" + arguments[:-1]
-			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
-			# arguments.
-			return redirect(url_for("Login") + string)
+# @app.before_request
+# def guide ():
+# 	if request.path == "/":  # If at root, redirect
+# 		return redirect(url_for("Home"))
+# 	if not session.get("id"):  # If not logged in,
+# 		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
+# 			args = request.args
+# 			arguments = ""
+# 			for key, val in zip(args.keys(), args.values()):
+# 				arguments += f"{key}={val}&"
+# 			if arguments != "":
+# 				arguments = "?" + arguments[:-1]
+# 			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
+# 			# arguments.
+# 			return redirect(url_for("Login") + string)
 
 ### ROUTES
 @app.template_global()
@@ -122,7 +122,7 @@ def Home ():
 		rd = request.get_json()
 		if rd["intent"] == "get_info":
 			# Get all a user's tickets and not done tickets.
-			id = session["id"]
+			id = 1#session["id"]
 			done = (
 				db.session.query(db.Quest.id)
 					.join(db.Ticket)
@@ -301,10 +301,16 @@ def password (password, salt=os.urandom(32)):
 	hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
 	return hashed, salt
 
-hashed, salt = password("a")
-new = db.Worker(username="j", hashed=hashed, salt=salt)
-db.session.add(new)
-db.session.commit()
+# if not db.User.query.first():
+# 	hashed, salt = password("5249")
+# 	new = db.Worker(username="admin", hashed=hashed, salt=salt)
+# 	db.session.add(new)
+# 	db.session.commit()
+#
+# new = db.Quest(name="j", task="BRUH", info="salt")
+# db.session.add(new)
+# db.session.commit()
+
 
 ### RUN
 if __name__ == '__main__':

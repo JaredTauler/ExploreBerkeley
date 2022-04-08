@@ -2,11 +2,11 @@ var DoneTable = new Tabulator
 (
     "#DoneTable",
     {
-        height: "311px",
+        layout:"fitColumns",
         columns: [
 
             {field: "ticket.id", visible: false},
-            {title: "Name", field: "quest.name"},
+            {title: "Completed", field: "quest.name"},
             {visible: false, field: "quest.info"}
         ]
     }
@@ -15,11 +15,11 @@ var NotDoneTable = new Tabulator
 (
     "#NotDoneTable",
     {
-        height: "311px",
+        layout:"fitColumns",
         columns: [
 
             {field: "id", visible: false},
-            {title: "Name", field: "name"},
+            {title: "Uncompleted", field: "name"},
             {visible: false, field: "info"}
         ]
     }
