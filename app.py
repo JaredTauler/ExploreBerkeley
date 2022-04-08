@@ -19,7 +19,7 @@ from sqlalchemy_imageattach.stores.fs import HttpExposedFileSystemStore
 ### Prepare app
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI")  # sqlite:///test.db
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///test.db"
 app.config['SESSION_TYPE'] = "filesystem"
 
 ### DATABASE
@@ -27,13 +27,13 @@ import database as db
 
 fs_store = HttpExposedFileSystemStore('image', 'image/')
 app.wsgi_app = fs_store.wsgi_middleware(app.wsgi_app)
-# app.wsgi_app = fs_store.wsgi_middleware(app.wsgi_app)
-
 
 NoLoginWhitelist = [
 	"/login"
-
 ]
+
+def Worker():
+	return session.get("worker")
 
 @app.before_request
 def guide ():
@@ -75,20 +75,50 @@ def Login ():
 		row = db.User.query.filter_by(username=rd.get("username")).first()  # Get user from DB..
 		if not row:  # Couldnt find user in DB.
 			jsonify(["redirect", "username"]), 200
-		if password(rd.get("password"), row.salt)[
-			0] == row.hashed:  # Check given password hashed is same as one in database.
+		if password(rd.get("password"), row.salt) \
+			[0] == row.hashed:  # Check given password hashed is same as one in database.
 			session["id"] = row.id
+
+			# Mark session as worker
+			a = (
+				db.session.query(db.User)
+					.outerjoin(db.Worker)
+					.filter(db.User.id == row.id)
+			)
+			if a:
+				session["worker"] = True
+
 			return jsonify(["pass", 0]), 200
 		# Password didnt match
 		return jsonify(["bad", "password"]), 200
 
+@app.route('/useradd', methods=["GET", "POST"])
+def AddUser():
+	if not Worker():
+		return
+	try:
+		hashed, salt = password(request.args["p"])
+		if request.args.get("w"):
+			new = db.Worker(username=request.args["u"], hashed=hashed, salt = salt)
+		else:
+			new = db.User(username=request.args["u"], hashed=hashed, salt = salt)
+		db.session.add(new)
+		db.session.commit()
+	except Exception as e:
+		s = '"/useradd?u=USERNAME&p=PASSWORD&w=VALUE" "w" marks a user as a worker and is not necessary, the given ' \
+		    'value doesn\'t matter, code only checks if a value was given.'
+		try:
+			db.session.rollback()
+			return s + str(e.__dict__["orig"]) + str(e.__dict__["statement"])
+		except:
+			return s
+	return "Success!", 200
+
 @app.route('/home', methods=["GET", "POST"])
 def Home ():
-	# DEBUG
-	# hashed, salt = password("a")
-	# new = db.User(id="22", username="eviljared", hashed=hashed, salt=salt)
-	# db.session.add(new)
-	# db.session.commit()
+	if Worker():
+		return redirect("process_ticket")
+
 	if request.method == "GET":
 		return render_template("home.html")
 	else:
@@ -184,6 +214,9 @@ def TurnInQuest ():
 
 @app.route("/process_ticket", methods=["GET", "POST"])
 def Process_Ticket ():
+	if not Worker():
+		return
+
 	if request.method == "GET":
 		return render_template("process_ticket.html")
 	else:
@@ -234,6 +267,8 @@ def Process_Ticket ():
 
 @app.route("/quest_manage", methods=["GET", "POST"])
 def QuestManage ():
+	if not Worker():
+		return
 	if request.method == "GET":
 		return render_template("quest_manage.html")
 	else:
@@ -254,6 +289,8 @@ def QuestManage ():
 
 @app.route("/quest_manage/ajax", methods=["GET"])
 def QuestManageAjax ():
+	if not Worker():
+		return
 	if request.method == "GET":
 		data = json.dumps(db.Quest.query.all(), cls=db.JsonEncoder)
 		return data, 200
@@ -268,6 +305,7 @@ def password (password, salt=os.urandom(32)):
 	hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
 	return hashed, salt
 
+#
 # hashed, salt = password("a")
 # new = db.User(id="21", username="jared", hashed=hashed, salt = salt)
 # db.session.add(new)
