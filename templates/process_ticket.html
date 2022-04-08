@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block head %}
+    <title>Title</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='process_ticket.css') }}">
+{% endblock %}
+{% block content %}
+<div id="wrapper">
+    <form style="display: grid; width: 500px;" id="MainForm">
+        <div id="picturewrapper">
+            <div id="picturediv">
+                <picture id="picture"></picture>
+            </div>
+        </div>
+        <div id="infobutton">
+            <a id="username"></a>
+            <a id="questname"></a>
+            <a id="questtask"></a>
+            <div id="Buttons">
+                <div id="Choice">
+                    <input type="button" value="Reject" onclick="Get_Ticket('reject')">
+                    <input type="button" value="Accept" onclick="Get_Ticket('accept')">
+                </div>
+                <input id="GetTicket" type="button" value="Get Ticket" onclick="Get_Ticket(null)">
+            </div>
+        </div>
+    </form>
+    <script>
+        {{ static_include("process_ticket.js") | safe }}
+    </script>
+</div>
+{% endblock %}

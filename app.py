@@ -2,15 +2,13 @@
 import json
 import base64
 import os
-import yaml
 import hashlib
 import time
-import qrcode
 
 # flask
 from flask import Flask, abort, redirect, url_for, request, session, render_template, jsonify, make_response
 from flask_session import Session
-from sqlalchemy_imageattach.entity import store_context
+from sqlalchemy_imageattach.context import store_context
 from sqlalchemy_imageattach.stores.fs import HttpExposedFileSystemStore
 
 # from sqlalchemy_imageattach.entity import store_context
@@ -25,8 +23,8 @@ app.config['SESSION_TYPE'] = "filesystem"
 ### DATABASE
 import database as db
 
-store = HttpExposedFileSystemStore('image', 'image/')
-app.wsgi_app = store.wsgi_middleware(app.wsgi_app)
+fs_store = HttpExposedFileSystemStore('image', 'image/')
+app.wsgi_app = fs_store.wsgi_middleware(app.wsgi_app)
 # app.wsgi_app = fs_store.wsgi_middleware(app.wsgi_app)
 
 
@@ -51,6 +49,8 @@ NoLoginWhitelist = [
 # 			# arguments.
 # 			print(string)
 # 			return redirect(url_for("Login") + string)
+
+
 
 ### ROUTES
 @app.template_global()
@@ -82,39 +82,12 @@ def Login ():
 		# Password didnt match
 		return jsonify(["bad", "password"]), 200
 
-# sub = (
-# 	db.session.query(db.Ticket).
-# 		subquery()
-# )
-
-# usertickets = (
-# 	db.session.query(db.Ticket.quest_id)
-# 		.join(db.Quest)
-# 		.filter(db.Ticket.user_id == 1)
-# )
-# q = (
-# 	db.session.query(db.Ticket)
-# 		.filter(db.Ticket.quest_id == 2)
-# 		.filter(db.Ticket.user_id == 1)
-# 		.delete()
-# )
-
-
-# js = json.dumps(
-# 	{"user": usertickets},
-# 	cls=db.JsonEncoder
-# )
-# print(js)
-
 @app.route('/home', methods=["GET", "POST"])
 def Home ():
-	(
-		db.session.query(db.Ticket)
-			.filter(db.Ticket.quest_id == 1)
-			.filter(db.Ticket.user_id == 1)
-			.delete()
-	)
-	db.session.commit()
+	# hashed, salt = password("a")
+	# new = db.User(id="21", username="jared", hashed=hashed, salt=salt)
+	# db.session.add(new)
+	# db.session.commit()
 	if request.method == "GET":
 		return render_template("home.html")
 	else:
@@ -140,19 +113,49 @@ def TurnInQuest ():
 	if request.method == "GET":
 		return render_template("quest.html")
 	else:
-		(
+		# Delete tickets that already exist with this quest.
+		# I didnt have enough time to figure out how to cascade delete with SQLalchemy.
+		# Using a loop for this is very very stupid and shouldn't be done unless you have 2 weeks to make a website.
+		q = (
 			db.session.query(db.Ticket)
 				.filter(db.Ticket.quest_id == request.args["id"])
 				.filter(db.Ticket.user_id == 1)
-				.delete()
 		)
+		for i in q.all():
+			id = i.id
+			q = (
+				db.session.query(db.TicketGood)
+					.filter(db.TicketGood.id == id)
+			)
+			# A pre-existing ticket for this quest has already been verified. Cancel delete operation.
+			if q.all():
+				return
+			q = (
+				db.session.query(db.Ticket)
+					.filter(db.Ticket.id == id)
+			)
+			q.delete()
+			q = (
+				db.session.query(db.TicketNew)
+					.filter(db.TicketNew.id == id)
+			)
+			if q.all():
+				q.delete()
+			q = (
+				db.session.query(db.TicketPicture)
+					.filter(db.TicketPicture.id == id)
+			)
+			if q.all():
+				q.delete()
+		db.session.commit()
 
+		# Write new ticket to DB.
 		ticket = db.Ticket(
 			user_id=1,  # session["id"],
 			quest_id=request.args["id"]
 		)
 		db.session.add(ticket)
-		with store_context(store):
+		with store_context(fs_store):
 			ticket.picture.from_file(request.files["ImageUpload"])
 			print(ticket.picture)  # FIXME This crashes if this isnt here. No idea why.
 
@@ -192,7 +195,7 @@ def Process_Ticket ():
 		if rd["intent"] == "get-ticket":
 			row = db.Ticket.query.filter(db.Ticket.id == db.TicketNew.id).first()
 			if row:
-				with store_context(store):
+				with store_context(fs_store):
 					url = row.picture.locate()
 				user = db.User.query.filter(db.User.id == row.user_id).first()
 				quest = db.Quest.query.filter(db.Quest.id == row.quest_id).first()
@@ -251,11 +254,10 @@ def password (password, salt=os.urandom(32)):
 	hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
 	return hashed, salt
 
-hashed, salt = password("a")
-new = db.User(id="21", username="jared", hashed=hashed, salt = salt)
-db.session.add(new)
-db.session.commit()
-
+# hashed, salt = password("a")
+# new = db.User(id="21", username="jared", hashed=hashed, salt = salt)
+# db.session.add(new)
+# db.session.commit()
 
 ### RUN
 if __name__ == '__main__':

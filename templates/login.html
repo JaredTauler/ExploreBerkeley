@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block head %}
+    <title>Title</title>
+{% endblock %}
+
+{% block content %}
+    <form style="display: grid" id="LoginForm" onsubmit="return SendData('LoginForm')">
+        <p id="problem"></p>
+        <input type="text" name="username" id="username" placeholder="User ID">
+        <input type="text" name="password" id="password" placeholder="Password">
+        <input type="submit" value="Login" class=>
+    </form>
+    <script>
+        {{ static_include("login.js") | safe }}
+    </script>
+{% endblock %}

@@ -1,0 +1,21 @@
+#picture > img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#picturewrapper {
+    height: 500px;
+    background-color: red;
+}
+
+#Buttons {
+    display: flex;
+    justify-content: center;;
+}
+
+#infobutton {
+    display: grid;
+    grid-auto-rows: 1fr;
+    background-color: #5cb85c
+}

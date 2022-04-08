@@ -1,0 +1,17 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='popup/style.css') }}">
+
+<!-- The Modal -->
+<div id="Popup" class="modal">
+
+  <!-- Modal content -->
+  <div class="modal-content">
+    {% block content %}
+    {% endblock %}
+  </div>
+
+</div>
+
+ <script>
+    {{ static_include("popup/main.js") | safe }}
+</script>
+

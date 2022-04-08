@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block head %}
+    <title>Title</title>
+{% endblock %}
+{% block content %}
+    {% include 'quest_manage_qr.html' %}
+    <form style="display: grid" id="MainForm" onsubmit="return SubmitPicture('MainForm')" >
+        <p id="problem"></p>
+        <input type="file" id="ImageUpload">
+        <input type="submit">
+    </form>
+    <script>
+        {{ static_include("quest.js") | safe }}
+    </script>
+{% endblock %}

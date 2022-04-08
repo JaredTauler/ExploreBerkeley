@@ -1,0 +1,8 @@
+@media only screen and (max-width: 20rem) {
+    .FormContainer {
+        min-width: 100vw;
+       box-sizing:border-box;
+
+
+   }
+}

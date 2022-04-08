@@ -32,12 +32,22 @@ class Ticket(db.Model):
 	id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 	quest_id = db.Column(db.Integer, db.ForeignKey('quest.id'))
-	# picture = image_attachment('TicketPicture')
+	picture = image_attachment('TicketPicture')
 	worker_id = db.Column(db.Integer, db.ForeignKey('worker.id'), nullable=True)
 
-	pictures = db.relationship("TicketPicture", cascade="all,delete",)
-# quest = db.Column(db.Model.Quest, nullable=False)
-# email = db.Column(db.String(120), unique=True, nullable=False)
+	# picture = db.relationship(
+	# 	"TicketPicture",
+	# 	backref="ticket",
+	# 	uselist=False,
+	# 	cascade="all,delete",
+	# )
+	#
+	# good = db.relationship(
+	# 	"TicketGood",
+	# 	backref="ticket",
+	# 	uselist=False,
+	# 	cascade="all,delete",
+	# )
 
 class TicketGood(db.Model):
 	id = db.Column(db.Integer, db.ForeignKey('ticket.id'), primary_key=True)
@@ -53,16 +63,7 @@ class TicketNew(db.Model):
 
 class TicketPicture(db.Model, Image):
 	__tablename__ = "ticketpicture"
-	"""User picture model."""
-	ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), primary_key=True)
-	ticket = db.relationship(
-		"Ticket",
-		backref=db.backref("pictures", cascade="all, delete-orphan")
-		)
-
-# ticket = db.relationship('Ticket')
-# id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-# __tablename__ = 'user_picture'
+	id = db.Column(db.Integer, db.ForeignKey('ticket.id'), primary_key=True)
 
 db.create_all()
 db.session.commit()
@@ -85,7 +86,6 @@ class JsonEncoder(json.JSONEncoder):
 					fields[field] = None
 			# a json-encodable dict
 			return fields
-		print("bruh")
 		if obj.__class__ == sqlalchemy.engine.row.Row:
 			tables = {}
 			for t in obj:
