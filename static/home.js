@@ -1,22 +1,61 @@
-var table = new Tabulator
+var DoneTable = new Tabulator
 (
-    "#Table",
+    "#DoneTable",
     {
         height: "311px",
         columns: [
 
             {field: "ticket.id", visible: false},
             {title: "Name", field: "quest.name"},
-            {title: "Info", field: "quest.info"},
-            // {title: "Name", field: "name"},
-            // {title: "Task", field: "task"},
-            // {title: "Info", field: "info"}
-            // {title:"Rating", field:"rating"},
-            // {title:"Favourite Color", field:"col"},
-            // {title:"Date Of Birth", field:"dob", hozAlign:"center"},
+            {visible: false, field: "quest.info"}
         ]
     }
 );
+var NotDoneTable = new Tabulator
+(
+    "#NotDoneTable",
+    {
+        height: "311px",
+        columns: [
+
+            {field: "id", visible: false},
+            {title: "Name", field: "name"},
+            {visible: false, field: "info"}
+        ]
+    }
+);
+
+let popup = new Popup()
+let CurrentRow = null
+
+// Redirect on row click
+NotDoneTable.on('rowClick', (e, row) =>
+{
+    CurrentRow = {}
+    for (let i of Object.entries(row.getData()))
+    {
+        CurrentRow[i[0]] = i[1]
+    }
+
+    let elem = {}
+    for (let i of ["name", "task", "info", "link"])
+    {
+        elem[i] = popup.modal.querySelector("[id='" + i + "']")
+    }
+
+    elem.name.textContent = CurrentRow.name
+    elem.task.textContent = CurrentRow.task
+    elem.info.textContent = CurrentRow.info
+
+    let data = Object.entries(row.getData())
+    let id = data[0][1] // Assume that this is quest ID.
+    let link = "/quest?id=" + id.toString() // Stolen from quest manage.
+    // window.location.href = link
+    console.log(elem)
+    elem.link.href = link
+
+    popup.Show()
+})
 
 function PopulateTable()
 {
@@ -29,7 +68,8 @@ function PopulateTable()
             if (this.status === 200)
             {
                 console.log(response)
-                table.setData(response["user"]);
+                DoneTable.setData(response["done"]);
+                NotDoneTable.setData(response["notdone"]);
             }
         }
     };
@@ -45,3 +85,4 @@ function PopulateTable()
     );
     return false
 }
+PopulateTable()

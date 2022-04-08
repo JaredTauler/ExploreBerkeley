@@ -7,8 +7,12 @@
 {% endblock %}
 
 {% block content %}
+    {% include 'popup_alert.html' %}
     <div>
-        <div id="Table"></div>
+        <div>
+            <div id="DoneTable"></div>
+            <div id="NotDoneTable"></div>
+        </div>
         <input type="button" value="Load Data" onclick="PopulateTable()">
     </div>
     <script>

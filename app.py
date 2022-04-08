@@ -11,13 +11,15 @@ from flask_session import Session
 from sqlalchemy_imageattach.context import store_context
 from sqlalchemy_imageattach.stores.fs import HttpExposedFileSystemStore
 
+# from sqlalchemy import or_, and_, case, literal_column, func, not_
+
 # from sqlalchemy_imageattach.entity import store_context
 # import sqlalchemy_imageattach
 
 ### Prepare app
 app = Flask(__name__)
 app.secret_key = os.urandom(16)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tes3t.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DB_URI")  # sqlite:///test.db
 app.config['SESSION_TYPE'] = "filesystem"
 
 ### DATABASE
@@ -33,24 +35,22 @@ NoLoginWhitelist = [
 
 ]
 
-# @app.before_request
-# def guide ():
-# 	if request.path == "/":  # If at root, redirect
-# 		return redirect(url_for("Home"))
-# 	if not session.get("id"):  # If not logged in,
-# 		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
-# 			args = request.args
-# 			arguments = ""
-# 			for key, val in zip(args.keys(), args.values()):
-# 				arguments += f"{key}={val}&"
-# 			if arguments != "":
-# 				arguments = "?" + arguments[:-1]
-# 			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
-# 			# arguments.
-# 			print(string)
-# 			return redirect(url_for("Login") + string)
-
-
+@app.before_request
+def guide ():
+	if request.path == "/":  # If at root, redirect
+		return redirect(url_for("Home"))
+	if not session.get("id"):  # If not logged in,
+		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
+			args = request.args
+			arguments = ""
+			for key, val in zip(args.keys(), args.values()):
+				arguments += f"{key}={val}&"
+			if arguments != "":
+				arguments = "?" + arguments[:-1]
+			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
+			# arguments.
+			print(string)
+			return redirect(url_for("Login") + string)
 
 ### ROUTES
 @app.template_global()
@@ -84,8 +84,9 @@ def Login ():
 
 @app.route('/home', methods=["GET", "POST"])
 def Home ():
+	# DEBUG
 	# hashed, salt = password("a")
-	# new = db.User(id="21", username="jared", hashed=hashed, salt=salt)
+	# new = db.User(id="22", username="eviljared", hashed=hashed, salt=salt)
 	# db.session.add(new)
 	# db.session.commit()
 	if request.method == "GET":
@@ -94,19 +95,32 @@ def Home ():
 		# rd = request.form.to_dict()  # Get form data
 		rd = request.get_json()
 		if rd["intent"] == "get_info":
-			# Get all a user's tickets
-			usertickets = (
-				db.session.query(db.Ticket, db.Quest, )
-					.outerjoin(db.Quest, db.Ticket.quest_id == db.Quest.id)
-					.filter(db.Ticket.user_id == 1)
-			).all()
+			# Get all a user's tickets and not done tickets.
+			id = session["id"]
+			done = (
+				db.session.query(db.Quest.id)
+					.join(db.Ticket)
+					.filter(db.Ticket.user_id == id)
+			).subquery()
+
+			not_done = (
+				db.session.query(db.Quest)
+					.filter(db.Quest.id.not_in(done))
+			)
+
+			done_ticket = (
+				db.session.query(db.Quest, db.Ticket)
+					.join(db.Ticket)
+					.filter(db.Ticket.user_id == id)
+			)
 			js = json.dumps(
-				{"user": usertickets},
+				{
+					"done"   : done_ticket.all(),
+					"notdone": not_done.all()
+				},
 				cls=db.JsonEncoder
 			)
-			print(js)
 			return js, 200
-		return "bruh"
 
 @app.route("/quest", methods=["GET", "POST"])
 def TurnInQuest ():
@@ -119,7 +133,7 @@ def TurnInQuest ():
 		q = (
 			db.session.query(db.Ticket)
 				.filter(db.Ticket.quest_id == request.args["id"])
-				.filter(db.Ticket.user_id == 1)
+				.filter(db.Ticket.user_id == session["id"])
 		)
 		for i in q.all():
 			id = i.id
@@ -151,7 +165,7 @@ def TurnInQuest ():
 
 		# Write new ticket to DB.
 		ticket = db.Ticket(
-			user_id=1,  # session["id"],
+			user_id=session["id"],  # session["id"],
 			quest_id=request.args["id"]
 		)
 		db.session.add(ticket)
