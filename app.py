@@ -49,7 +49,6 @@ def guide ():
 				arguments = "?" + arguments[:-1]
 			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
 			# arguments.
-			print(string)
 			return redirect(url_for("Login") + string)
 
 ### ROUTES
@@ -59,11 +58,10 @@ def static_include (filename):
 	with open(fullpath, 'r') as f:
 		return f.read()
 
-@app.route('/logout', methods=["POST"])
+@app.route('/logout', methods=["GET", "POST"])
 def Logout ():
-	# No need to check if given session has id. guide() should take care of that.
-	session.pop("id")
-	return "", 200
+	session.clear()
+	return redirect("login")
 
 @app.route('/login', methods=["GET", "POST"])
 def Login ():
@@ -81,13 +79,11 @@ def Login ():
 
 			# Mark session as worker
 			a = (
-				db.session.query(db.User)
-					.outerjoin(db.Worker)
-					.filter(db.User.id == row.id)
+				db.session.query(db.Worker)
+					.filter(db.Worker.id == row.id)
 			)
-			if a:
+			if a.first():
 				session["worker"] = True
-
 			return jsonify(["pass", 0]), 200
 		# Password didnt match
 		return jsonify(["bad", "password"]), 200
@@ -304,12 +300,6 @@ def DictToRow (row, dict):
 def password (password, salt=os.urandom(32)):
 	hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
 	return hashed, salt
-
-#
-# hashed, salt = password("a")
-# new = db.User(id="21", username="jared", hashed=hashed, salt = salt)
-# db.session.add(new)
-# db.session.commit()
 
 ### RUN
 if __name__ == '__main__':
