@@ -301,6 +301,11 @@ def password (password, salt=os.urandom(32)):
 	hashed = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
 	return hashed, salt
 
+hashed, salt = password("a")
+new = db.Worker(username="j", hashed=hashed, salt=salt)
+db.session.add(new)
+db.session.commit()
+
 ### RUN
 if __name__ == '__main__':
 	app.run()
