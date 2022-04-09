@@ -1,8 +1,13 @@
 {% extends "popup.html" %}
 {% block content %}
-    <a id="name"></a>
-    <a id="task"></a>
-    <a id="info"></a>
-    <a id="link" href="">Fulfill Task</a>
+    <div>
+        <div class="text">
+            <a id="name"></a>
+            <textarea id="task"></textarea>
+            <textarea id="info"></textarea>
+        </div>
 
+        <a id="link" href="">Fulfill Task</a>
+        <input type="button" onclick="popup.Close()" value="Close">
+    </div>
 {% endblock %}

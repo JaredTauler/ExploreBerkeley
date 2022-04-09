@@ -4,7 +4,7 @@ class Popup
     {
         this.modal = document.getElementById("Popup");
         this.modal.onclick = this.Close.bind(this)
-        this.modal.ontouchstart = this.Close.bind(this)
+        // this.modal.ontouchend = this.Close.bind(this)
     }
     Show () {
         this.modal.style.display = "grid";

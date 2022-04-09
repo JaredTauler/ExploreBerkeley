@@ -28,7 +28,7 @@ function SubmitPicture(id) {
                     // }
                     // else
                     // {
-                    //     window.location.href = "home"
+                        window.location.href = "home"
                     // }
                 }
             }

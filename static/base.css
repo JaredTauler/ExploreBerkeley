@@ -1,5 +1,67 @@
 #wrapper {
     justify-content: center;
     display: flex;
-    background-color: aqua;
+
+}
+
+.header {
+    position: sticky;
+    /*FIXME This is not a good fix and could break*/
+    z-index: 999;
+    top: 0;
+    display: grid;
+    width: 100vw;
+    justify-content: center;
+}
+
+.headercontent {
+    max-width: 60rem;
+    min-width: 40rem;
+    width: 50vw;
+}
+
+
+.headerbutton {
+  width: fit-content;
+}
+
+/*TODO make dropdown prettier*/
+/* The dropdown container */
+    /* Dropdown content (hidden by default) */
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+      z-index: 1;
+    }
+
+    /* Links inside the dropdown */
+    .dropdown-content a {
+      float: none;
+      color: black;
+      padding: 12px 16px;
+      text-decoration: none;
+      text-align: left;
+    }
+
+    /* Add a grey background color to dropdown links on hover */
+    .dropdown-content a:hover {
+      background-color: #ddd;
+    }
+
+    /* Show the dropdown menu on hover */
+    .active .dropdown-content{
+      display: grid;
+    }
+
+
+@media only screen and (max-width: 40rem) {
+    .headercontent {
+        min-width: 100vw;
+       box-sizing:border-box;
+
+
+   }
 }

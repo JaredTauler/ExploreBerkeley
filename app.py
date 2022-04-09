@@ -29,27 +29,28 @@ fs_store = HttpExposedFileSystemStore('image', 'image/')
 app.wsgi_app = fs_store.wsgi_middleware(app.wsgi_app)
 
 NoLoginWhitelist = [
-	"/login"
+	"/login", "/static/base.css", "/static/base.js"
 ]
 
 def Worker():
 	return session.get("worker")
 
-# @app.before_request
-# def guide ():
-# 	if request.path == "/":  # If at root, redirect
-# 		return redirect(url_for("Home"))
-# 	if not session.get("id"):  # If not logged in,
-# 		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
-# 			args = request.args
-# 			arguments = ""
-# 			for key, val in zip(args.keys(), args.values()):
-# 				arguments += f"{key}={val}&"
-# 			if arguments != "":
-# 				arguments = "?" + arguments[:-1]
-# 			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
-# 			# arguments.
-# 			return redirect(url_for("Login") + string)
+@app.before_request
+def guide ():
+	if request.path == "/":  # If at root, redirect
+		return redirect(url_for("Home"))
+	if not session.get("id"):  # If not logged in,
+		print(request.path)
+		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
+			args = request.args
+			arguments = ""
+			for key, val in zip(args.keys(), args.values()):
+				arguments += f"{key}={val}&"
+			if arguments != "":
+				arguments = "?" + arguments[:-1]
+			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
+			# arguments.
+			return redirect(url_for("Login") + string)
 
 ### ROUTES
 @app.template_global()
@@ -112,11 +113,12 @@ def AddUser():
 
 @app.route('/home', methods=["GET", "POST"])
 def Home ():
-	if Worker():
+	worker = Worker()
+	if worker:
 		return redirect("process_ticket")
 
 	if request.method == "GET":
-		return render_template("home.html")
+		return render_template("home.html", worker=worker)
 	else:
 		# rd = request.form.to_dict()  # Get form data
 		rd = request.get_json()
@@ -151,7 +153,7 @@ def Home ():
 @app.route("/quest", methods=["GET", "POST"])
 def TurnInQuest ():
 	if request.method == "GET":
-		return render_template("quest.html")
+		return render_template("quest.html", worker=Worker())
 	else:
 		# Delete tickets that already exist with this quest.
 		# I didnt have enough time to figure out how to cascade delete with SQLalchemy.
@@ -214,7 +216,7 @@ def Process_Ticket ():
 		return
 
 	if request.method == "GET":
-		return render_template("process_ticket.html")
+		return render_template("process_ticket.html", worker=Worker())
 	else:
 		rd = request.get_json()
 		CurrentTicket = rd["current_ticket"]
@@ -266,7 +268,7 @@ def QuestManage ():
 	if not Worker():
 		return
 	if request.method == "GET":
-		return render_template("quest_manage.html")
+		return render_template("quest_manage.html", worker=Worker())
 	else:
 		rd = request.form.to_dict()
 		if rd['intent'] == "save":
@@ -302,10 +304,10 @@ def password (password, salt=os.urandom(32)):
 	return hashed, salt
 
 # if not db.User.query.first():
-# 	hashed, salt = password("5249")
-# 	new = db.Worker(username="admin", hashed=hashed, salt=salt)
-# 	db.session.add(new)
-# 	db.session.commit()
+# hashed, salt = password("5249")
+# new = db.Worker(username="admin", hashed=hashed, salt=salt)
+# db.session.add(new)
+# db.session.commit()
 #
 # new = db.Quest(name="j", task="BRUH", info="salt")
 # db.session.add(new)

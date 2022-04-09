@@ -6,7 +6,6 @@
 
 #picturewrapper {
     height: 500px;
-    background-color: red;
 }
 
 #Buttons {
@@ -17,5 +16,4 @@
 #infobutton {
     display: grid;
     grid-auto-rows: 1fr;
-    background-color: #5cb85c
 }

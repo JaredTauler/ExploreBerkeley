@@ -24,3 +24,16 @@
     width: 100%;
     justify-items: center;
 }
+
+.text {
+    display: grid;
+
+}
+.text > textarea {
+    height: 30vh;
+}
+
+.modal-content {
+    width: 90vw;
+    height: 70vh;
+}
