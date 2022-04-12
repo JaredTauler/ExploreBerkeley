@@ -111,6 +111,32 @@ def AddUser():
 			return s
 	return "Success!", 200
 
+
+
+@app.route('/report', methods=["GET", "POST"])
+def Report ():
+	worker = Worker()
+	if request.method == "GET":
+		return render_template("report.html", worker=worker)
+	else:
+		rd = request.get_json()
+		if rd["intent"] == "get_info":
+			newlist = []
+			user = (
+				db.session.query(db.User)
+			)
+			for i in user.all():
+				tickets = (
+					db.session.query(db.Ticket)
+						.join(db.User)
+						.filter(db.Ticket.user_id == i.id)
+				)
+				newlist.append({"user": i, "count": len(tickets.all())})
+			return json.dumps(
+					newlist,
+					cls=db.JsonEncoder
+				)
+
 @app.route('/home', methods=["GET", "POST"])
 def Home ():
 	worker = Worker()
