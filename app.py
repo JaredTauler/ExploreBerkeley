@@ -91,16 +91,16 @@ def Login ():
 
 @app.route('/useradd', methods=["GET", "POST"])
 def AddUser():
-	if not Worker():
-		return
+	# if not Worker():
+	# 	return
 	try:
-		hashed, salt = password(request.args["p"])
+		hashed, salt = password(request.args.get("p"))
 		if request.args.get("w"):
-			new = db.Worker(username=request.args["u"], hashed=hashed, salt = salt)
+			new = db.Worker(username=request.args.get("u"), hashed=hashed, salt = salt)
 		else:
-			new = db.User(username=request.args["u"], hashed=hashed, salt = salt)
-		db.session.add(new)
-		db.session.commit()
+			new = db.User(username=request.args.get("u"), hashed=hashed, salt = salt)
+			db.session.add(new)
+			db.session.commit()
 	except Exception as e:
 		s = '"/useradd?u=USERNAME&p=PASSWORD&w=VALUE" "w" marks a user as a worker and is not necessary, the given ' \
 		    'value doesn\'t matter, code only checks if a value was given.'
@@ -124,7 +124,7 @@ def Home ():
 		rd = request.get_json()
 		if rd["intent"] == "get_info":
 			# Get all a user's tickets and not done tickets.
-			id = 1#session["id"]
+			id = session["id"]
 			done = (
 				db.session.query(db.Quest.id)
 					.join(db.Ticket)
