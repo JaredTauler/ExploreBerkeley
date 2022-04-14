@@ -234,7 +234,7 @@ def TurnInQuest ():
 		)
 		db.session.add(new)
 		db.session.commit()
-		return "", 200
+		return jsonify(""), 200
 
 @app.route("/process_ticket", methods=["GET", "POST"])
 def Process_Ticket ():

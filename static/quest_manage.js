@@ -87,9 +87,7 @@ function Save()
             response = JSON.parse(xhttp.response)
             if (this.status === 200)
             {
-                if (response[0] === "pass")
-                {
-                }
+
             }
         }
     };

@@ -17,20 +17,18 @@ function SubmitPicture(id) {
             response = JSON.parse(xhttp.response)
             if (this.status === 200)
             {
-                // if (response[0] === "bad")
+                window.location.href = "home"
+                // if (response[0] === "pass")
                 // {
+                //     // if(window.location.hash)
+                //     // {
+                //     //     window.location.href = window.location.hash.substring(1)
+                //     // }
+                //     // else
+                //     // {
+                //         window.location.href = "home"
+                //     // }
                 // }
-                if (response[0] === "pass")
-                {
-                    // if(window.location.hash)
-                    // {
-                    //     window.location.href = window.location.hash.substring(1)
-                    // }
-                    // else
-                    // {
-                        window.location.href = "home"
-                    // }
-                }
             }
             // else if (this.status === 500)
             // {
