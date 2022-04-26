@@ -114,6 +114,8 @@ def AddUser():
 @app.route("/find_ticket", methods=["GET", "POST"])
 def FindTicket():
 	worker = Worker()
+	if not worker:
+		return
 	if request.method == "GET":
 		return render_template("findticket.html", worker=worker)
 	else:
