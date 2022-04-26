@@ -35,22 +35,22 @@ NoLoginWhitelist = [
 def Worker():
 	return session.get("worker")
 
-@app.before_request
-def guide ():
-	if request.path == "/":  # If at root, redirect
-		return redirect(url_for("Home"))
-	if not session.get("id"):  # If not logged in,
-		print(request.path)
-		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
-			args = request.args
-			arguments = ""
-			for key, val in zip(args.keys(), args.values()):
-				arguments += f"{key}={val}&"
-			if arguments != "":
-				arguments = "?" + arguments[:-1]
-			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
-			# arguments.
-			return redirect(url_for("Login") + string)
+# @app.before_request
+# def guide ():
+# 	if request.path == "/":  # If at root, redirect
+# 		return redirect(url_for("Home"))
+# 	if not session.get("id"):  # If not logged in,
+# 		print(request.path)
+# 		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
+# 			args = request.args
+# 			arguments = ""
+# 			for key, val in zip(args.keys(), args.values()):
+# 				arguments += f"{key}={val}&"
+# 			if arguments != "":
+# 				arguments = "?" + arguments[:-1]
+# 			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
+# 			# arguments.
+# 			return redirect(url_for("Login") + string)
 
 ### ROUTES
 @app.template_global()
@@ -111,6 +111,66 @@ def AddUser():
 			return s
 	return "Success!", 200
 
+@app.route("/find_ticket", methods=["GET", "POST"])
+def FindTicket():
+	worker = Worker()
+	if request.method == "GET":
+		return render_template("findticket.html", worker=worker)
+	else:
+		# rd = request.form.to_dict()  # Get form data
+		rd = request.get_json()
+		print(rd)
+		if rd["intent"] == "get_user":
+			# Get all a user's tickets and not done tickets.
+			users = (
+				db.session.query(db.User)
+			)
+			js = json.dumps(
+				{
+					"user"   : users.all(),
+				},
+				cls=db.JsonEncoder
+			)
+			return js, 200
+
+		elif rd["intent"] == "get_user_ticket":
+			# Get all a user's tickets and not done tickets.
+			ticket = (
+				db.session.query(db.Quest, db.Ticket)
+					.join(db.Ticket)
+					.filter(db.Ticket.user_id == rd["id"])
+			)
+			# print(vars(ticket.all()[0][0]))
+			js = json.dumps(
+				{
+					"ticket"   : ticket.all(),
+				},
+				cls=db.JsonEncoder
+			)
+			return js, 200
+
+		elif rd["intent"] == "get_ticket":
+
+			row = db.Ticket.query.filter(db.Ticket.id == rd["id"]).first()
+			with store_context(fs_store):
+				url = row.picture.locate()
+			user = db.User.query.filter(db.User.id == row.user_id).first()
+			quest = db.Quest.query.filter(db.Quest.id == row.quest_id).first()
+			return jsonify(
+				{
+					"picture-url": url,
+					"ticket"     : {
+						"id": row.id
+					},
+					"user"       : {
+						"username": user.username
+					},
+					"quest"      : {
+						"name": quest.name,
+						"task": quest.task
+					}
+				}
+			), 200
 
 
 @app.route('/report', methods=["GET", "POST"])
@@ -270,7 +330,6 @@ def Process_Ticket ():
 					url = row.picture.locate()
 				user = db.User.query.filter(db.User.id == row.user_id).first()
 				quest = db.Quest.query.filter(db.Quest.id == row.quest_id).first()
-				print(user)
 				return jsonify(
 					{
 						"picture-url": url,
@@ -278,7 +337,7 @@ def Process_Ticket ():
 							"id": row.id
 						},
 						"user"       : {
-							"username": "test"  # user.username
+							"username": user.username
 						},
 						"quest"      : {
 							"name": quest.name,

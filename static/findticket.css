@@ -1,0 +1,29 @@
+#picture > img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#picturewrapper {
+    height: 500px;
+}
+
+#Buttons {
+    display: flex;
+    justify-content: center;;
+}
+
+#infobutton {
+    display: grid;
+    grid-auto-rows: 1fr;
+}
+
+/*html, body {margin: 0; height: 100%; overflow: hidden}*/
+
+.modal-content {
+    height: 70vh;
+}
+
+/*#Popup {*/
+/*    overflow: hidden;*/
+/*}*/

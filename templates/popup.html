@@ -3,15 +3,15 @@
 <!-- The Modal -->
 <div id="Popup" class="modal">
 
-  <!-- Modal content -->
-  <div class="modal-content">
-    {% block content %}
-    {% endblock %}
-  </div>
+    <!-- Modal content -->
+    <div class="modal-content">
+        {% block content %}
+        {% endblock %}
+    </div>
 
 </div>
 
- <script>
+<script>
     {{ static_include("popup/main.js") | safe }}
 </script>
 
