@@ -35,22 +35,22 @@ NoLoginWhitelist = [
 def Worker():
 	return session.get("worker")
 
-# @app.before_request
-# def guide ():
-# 	if request.path == "/":  # If at root, redirect
-# 		return redirect(url_for("Home"))
-# 	if not session.get("id"):  # If not logged in,
-# 		print(request.path)
-# 		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
-# 			args = request.args
-# 			arguments = ""
-# 			for key, val in zip(args.keys(), args.values()):
-# 				arguments += f"{key}={val}&"
-# 			if arguments != "":
-# 				arguments = "?" + arguments[:-1]
-# 			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
-# 			# arguments.
-# 			return redirect(url_for("Login") + string)
+@app.before_request
+def guide ():
+	if request.path == "/":  # If at root, redirect
+		return redirect(url_for("Home"))
+	if not session.get("id"):  # If not logged in,
+		print(request.path)
+		if not request.path in NoLoginWhitelist:  # If accessing a whitelisted route,
+			args = request.args
+			arguments = ""
+			for key, val in zip(args.keys(), args.values()):
+				arguments += f"{key}={val}&"
+			if arguments != "":
+				arguments = "?" + arguments[:-1]
+			string = f"#{request.path[1:]}{arguments}"  # Redirect to path user was trying to access + remember
+			# arguments.
+			return redirect(url_for("Login") + string)
 
 ### ROUTES
 @app.template_global()
